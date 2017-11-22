@@ -69,7 +69,7 @@ class S3Hook(AwsHook):
         prefix_split = re.split(r'(\w+[{d}])$'.format(d=delimiter), prefix, 1)
         previous_level = prefix_split[0]
         plist = self.list_prefixes(bucket_name, previous_level, delimiter)
-        return False if plist is None else prefix in plist        
+        return False if plist is None else prefix in plist
 
     def list_prefixes(self, bucket_name, prefix='', delimiter=''):
         """
@@ -82,8 +82,8 @@ class S3Hook(AwsHook):
         :param delimiter: the delimiter marks key hierarchy.
         :type delimiter: str
         """
-        response = self.get_conn().list_objects_v2(Bucket=bucket_name, 
-                                                   Prefix=prefix, 
+        response = self.get_conn().list_objects_v2(Bucket=bucket_name,
+                                                   Prefix=prefix,
                                                    Delimiter=delimiter)
         return [p.Prefix for p in response['CommonPrefixes']] if response.get('CommonPrefixes') else None
 
@@ -98,10 +98,10 @@ class S3Hook(AwsHook):
         :param delimiter: the delimiter marks key hierarchy.
         :type delimiter: str
         """
-        response = self.get_conn().list_objects_v2(Bucket=bucket_name, 
-                                                   Prefix=prefix, 
+        response = self.get_conn().list_objects_v2(Bucket=bucket_name,
+                                                   Prefix=prefix,
                                                    Delimiter=delimiter)
-        return [k.Key for k in response['Contents']] if response.get('Contents') else None
+        return [k['Key'] for k in response['Contents']] if response.get('Contents') else None
 
     def check_for_key(self, key, bucket_name=None):
         """
@@ -114,7 +114,7 @@ class S3Hook(AwsHook):
         """
         if not bucket_name:
             (bucket_name, key) = self.parse_s3_url(key)
-        
+
         try:
             self.get_conn().head_object(Bucket=bucket_name, Key=key)
             return True
@@ -170,7 +170,7 @@ class S3Hook(AwsHook):
         """
         if not bucket_name:
             (bucket_name, wildcard_key) = self.parse_s3_url(wildcard_key)
-        
+
         prefix = re.split(r'[*]', wildcard_key, 1)[0]
         klist = self.list_keys(bucket_name, prefix=prefix, delimiter=delimiter)
         if klist:
@@ -203,20 +203,20 @@ class S3Hook(AwsHook):
         """
         if not bucket_name:
             (bucket_name, key) = self.parse_s3_url(key)
-        
+
         if not replace and self.check_for_key(key, bucket_name):
             raise ValueError("The key {key} already exists.".format(key=key))
-        
+
         extra_args={}
         if encrypt:
             extra_args['ServerSideEncryption'] = "AES256"
-        
+
         client = self.get_conn()
         client.upload_file(filename, bucket_name, key, ExtraArgs=extra_args)
 
-    def load_string(self, 
+    def load_string(self,
                     string_data,
-                    key, 
+                    key,
                     bucket_name=None,
                     replace=False,
                     encrypt=False,
@@ -225,7 +225,7 @@ class S3Hook(AwsHook):
         Loads a string to S3
 
         This is provided as a convenience to drop a string in S3. It uses the
-        boto infrastructure to ship a file to s3. 
+        boto infrastructure to ship a file to s3.
 
         :param string_data: string to set as content for the key.
         :type string_data: str
@@ -242,15 +242,15 @@ class S3Hook(AwsHook):
         """
         if not bucket_name:
             (bucket_name, key) = self.parse_s3_url(key)
-        
+
         if not replace and self.check_for_key(key, bucket_name):
             raise ValueError("The key {key} already exists.".format(key=key))
-        
+
         extra_args={}
         if encrypt:
             extra_args['ServerSideEncryption'] = "AES256"
-        
+
         filelike_buffer = BytesIO(string_data.encode(encoding))
-        
+
         client = self.get_conn()
         client.upload_fileobj(filelike_buffer, bucket_name, key, ExtraArgs=extra_args)
