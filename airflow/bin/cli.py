@@ -864,7 +864,7 @@ def worker(args):
         'optimization': 'fair',
         'O': 'fair',
         'queues': args.queues,
-        'concurrency': args.concurrency,
+        'autoscale': '%d,%d' % (1, args.concurrency),
         'hostname': args.celery_hostname,
     }
 
