@@ -102,7 +102,8 @@ def dag_link(v, c, m, p):
     dag_id = bleach.clean(m.dag_id)
     url = url_for(
         'airflow.graph',
-        dag_id=dag_id)
+        dag_id=dag_id,
+        execution_date=m.execution_date)
     return Markup(
         '<a href="{}">{}</a>'.format(url, dag_id))
 
@@ -112,6 +113,16 @@ def log_url_formatter(v, c, m, p):
         '<a href="{m.log_url}">'
         '    <span class="glyphicon glyphicon-book" aria-hidden="true">'
         '</span></a>').format(**locals())
+
+
+def dag_run_link(v, c, m, p):
+    dag_id = bleach.clean(m.dag_id)
+    url = url_for(
+        'airflow.graph',
+        dag_id=m.dag_id,
+        run_id=m.run_id,
+        execution_date=m.execution_date)
+    return Markup('<a href="{url}">{m.run_id}</a>'.format(**locals()))
 
 
 def task_instance_link(v, c, m, p):
@@ -2391,7 +2402,9 @@ class DagRunModelView(ModelViewOnly):
         execution_date=datetime_f,
         state=state_f,
         start_date=datetime_f,
-        dag_id=dag_link)
+        dag_id=dag_link,
+        run_id=dag_run_link
+    )
 
     @action('new_delete', "Delete", "Are you sure you want to delete selected records?")
     def action_new_delete(self, ids):
@@ -2471,7 +2484,9 @@ class TaskInstanceModelView(ModelViewOnly):
         start_date=datetime_f,
         end_date=datetime_f,
         queued_dttm=datetime_f,
-        dag_id=dag_link, duration=duration_f)
+        dag_id=dag_link,
+        run_id=dag_run_link,
+        duration=duration_f)
     column_searchable_list = ('dag_id', 'task_id', 'state')
     column_default_sort = ('job_id', True)
     form_choices = {
