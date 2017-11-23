@@ -58,7 +58,7 @@ class S3Hook(AwsHook):
         :param bucket_name: the name of the bucket
         :type bucket_name: str
         """
-        s3 = self.get_resource('s3')
+        s3 = self.get_resource_type('s3')
         return s3.Bucket(bucket_name)
 
     def check_for_prefix(self, bucket_name, prefix, delimiter):
@@ -85,7 +85,7 @@ class S3Hook(AwsHook):
         response = self.get_conn().list_objects_v2(Bucket=bucket_name,
                                                    Prefix=prefix,
                                                    Delimiter=delimiter)
-        return [p.Prefix for p in response['CommonPrefixes']] if response.get('CommonPrefixes') else None
+        return [p['Prefix'] for p in response['CommonPrefixes']] if response.get('CommonPrefixes') else None
 
     def list_keys(self, bucket_name, prefix='', delimiter=''):
         """
