@@ -1423,12 +1423,10 @@ class SchedulerJob(BaseJob):
                     self.log.warning("TaskInstance %s went missing from the database", ti)
                     continue
 
-                # TODO: should we fail RUNNING as well, as we do in Backfills?
-                if ti.state == State.QUEUED:
-                    msg = ("Executor reports task instance %s finished (%s) "
+                if ti.state == State.QUEUED or ti.state == State.RUNNING:
+                    self.log.error("Executor reports task instance %s finished (%s) "
                            "although the task says its %s. Was the task "
-                           "killed externally?".format(ti, state, ti.state))
-                    self.log.error(msg)
+                           "killed externally?", ti, state, ti.state)
                     try:
                         simple_dag = simple_dag_bag.get_dag(dag_id)
                         dagbag = models.DagBag(simple_dag.full_filepath)
