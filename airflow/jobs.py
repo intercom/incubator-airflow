@@ -1432,7 +1432,9 @@ class SchedulerJob(BaseJob):
                         dagbag = models.DagBag(simple_dag.full_filepath)
                         dag = dagbag.get_dag(dag_id)
                         ti.task = dag.get_task(task_id)
-                        ti.handle_failure(msg)
+                        # clear task instances so they rerun
+                        session.delete(ti)
+                        session.commit()
                     except Exception:
                         self.log.error("Cannot load the dag bag to handle failure for %s"
                                        ". Setting task to FAILED without callbacks or "
