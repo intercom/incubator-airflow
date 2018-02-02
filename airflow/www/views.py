@@ -163,14 +163,22 @@ def state_f(v, c, m, p):
 
 def duration_f(v, c, m, p):
     if m.end_date and m.duration:
-        return timedelta(seconds=m.duration)
-
+        seconds = m.duration
+    elif m.start_date:
+        seconds = (datetime.today() - m.start_date).seconds
+    else:
+        return
+    if seconds > 60:
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        return Markup('<nobr>%dh %dm %ds</nobr>' % (hours, minutes, seconds))
+    else:
+        return '%ds' % seconds
 
 def datetime_f(v, c, m, p):
     attr = getattr(m, p)
-    dttm = attr.isoformat() if attr else ''
-    if datetime.utcnow().isoformat()[:4] == dttm[:4]:
-        dttm = dttm[5:]
+    dttm = attr.strftime('%Y-%m-%d %H:%M:%S') if attr else ''
+
     return Markup("<nobr>{}</nobr>".format(dttm))
 
 
