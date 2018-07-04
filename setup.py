@@ -30,15 +30,18 @@ version = imp.load_source(
 
 class Tox(TestCommand):
     user_options = [('tox-args=', None, "Arguments to pass to tox")]
+
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.tox_args = ''
+
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = []
         self.test_suite = True
+
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
+        # import here, cause outside the eggs aren't loaded
         import tox
         errno = tox.cmdline(args=self.tox_args.split())
         sys.exit(errno)
@@ -47,10 +50,13 @@ class Tox(TestCommand):
 class CleanCommand(Command):
     """Custom clean command to tidy up the project root."""
     user_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
         os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
 
@@ -99,7 +105,8 @@ def write_version(filename=os.path.join(*['airflow',
     with open(filename, 'w') as a:
         a.write(text)
 
-async = [
+
+async_packages = [
     'greenlet>=0.4.9',
     'eventlet>= 0.9.7',
     'gevent>=0.13'
@@ -115,7 +122,7 @@ cgroups = [
 crypto = ['cryptography>=0.9.3']
 dask = [
     'distributed>=1.15.2, <2'
-    ]
+]
 databricks = ['requests>=2.5.1, <3']
 datadog = ['datadog>=0.14.0']
 doc = [
@@ -171,7 +178,7 @@ password = [
 ]
 github_enterprise = ['Flask-OAuthlib>=0.9.1']
 qds = ['qds-sdk>=1.9.6']
-cloudant = ['cloudant>=0.5.9,<2.0'] # major update coming soon, clamp to 0.x
+cloudant = ['cloudant>=0.5.9,<2.0']  # major update coming soon, clamp to 0.x
 redis = ['redis>=2.10.5']
 
 all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant
@@ -192,7 +199,8 @@ devel = [
 ]
 devel_minreq = devel + mysql + doc + password + s3 + cgroups
 devel_hadoop = devel_minreq + hive + hdfs + webhdfs + kerberos
-devel_all = devel + all_dbs + doc + samba + s3 + slack + crypto + oracle + docker + ssh
+devel_all = devel + all_dbs + doc + samba + \
+    s3 + slack + crypto + oracle + docker + ssh
 
 
 def do_setup():
@@ -242,7 +250,7 @@ def do_setup():
         extras_require={
             'all': devel_all,
             'all_dbs': all_dbs,
-            'async': async,
+            'async': async_packages,
             'azure': azure,
             'celery': celery,
             'cgroups': cgroups,
