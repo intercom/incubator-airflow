@@ -871,6 +871,16 @@ class SchedulerJob(BaseJob):
                 return
 
             if next_run_date and period_end and period_end <= datetime.utcnow():
+                # HACK to enable custom DAG scheduling logic beside checking for schedule
+                # interval. If a DAG contains `schedule_callable` attribute, execute
+                # it then schedule a DAG _only_ if the result of that function is True.
+                # Function will receive a DAG+execution_date and needs to return
+                # boolean (whether a DAG should run). This function is called after
+                # all other checks completed succesfully.
+                if hasattr(dag, 'schedule_callable'):
+                    if not dag.schedule_callable(next_run_date):
+                        return
+
                 next_run = dag.create_dagrun(
                     run_id=DagRun.ID_PREFIX + next_run_date.isoformat(),
                     execution_date=next_run_date,
