@@ -70,7 +70,7 @@ class S3TaskHandler(FileTaskHandler, LoggingMixin):
 
         local_loc = os.path.join(self.local_base, self.log_relative_path)
         remote_loc = os.path.join(self.remote_base, self.log_relative_path)
-        if os.path.exists(local_loc):
+        if os.path.exists(local_loc) and not self.s3_log_exists(remote_loc):
             # read log and remove old logs to get just the latest additions
             with open(local_loc, 'r') as logfile:
                 log = logfile.read()
