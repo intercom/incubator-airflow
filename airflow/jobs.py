@@ -1413,10 +1413,10 @@ class SchedulerJob(BaseJob):
         TI = models.TaskInstance
         for key, state in list(self.executor.get_event_buffer(simple_dag_bag.dag_ids)
                                    .items()):
-            dag_id, task_id, execution_date = key
+            dag_id, task_id, execution_date, try_number = key
             self.log.info(
-                "Executor reports %s.%s execution_date=%s as %s",
-                dag_id, task_id, execution_date, state
+                "Executor reports %s.%s execution_date=%s as %s for try_number %s",
+                dag_id, task_id, execution_date, state, try_number
             )
             if state == State.FAILED or state == State.SUCCESS:
                 qry = session.query(TI).filter(TI.dag_id == dag_id,
@@ -1427,10 +1427,12 @@ class SchedulerJob(BaseJob):
                     self.log.warning("TaskInstance %s went missing from the database", ti)
                     continue
 
-                if ti.state == State.QUEUED or ti.state == State.RUNNING:
-                    self.log.error("Executor reports task instance %s finished (%s) "
-                           "although the task says its %s. Was the task "
-                           "killed externally?", ti, state, ti.state)
+                # TODO: should we fail RUNNING as well, as we do in Backfills?
+                if ti.try_number == try_number and ti.state == State.QUEUED:
+                    msg = ("Executor reports task instance {} finished ({}) "
+                           "although the task says its {}. Was the task "
+                           "killed externally?".format(ti, state, ti.state))
+                    self.log.error(msg)
                     try:
                         simple_dag = simple_dag_bag.get_dag(dag_id)
                         dagbag = models.DagBag(simple_dag.full_filepath)
