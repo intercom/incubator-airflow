@@ -788,7 +788,12 @@ class Airflow(BaseView):
         for attr_name in attr_renderer:
             if hasattr(task, attr_name):
                 source = getattr(task, attr_name)
-                special_attrs_rendered[attr_name] = attr_renderer[attr_name](source)
+                try:
+                    special_attrs_rendered[attr_name] = attr_renderer[attr_name](source)
+                except:
+                    # ignore rendering errors. these can happen for example
+                    # when an attribute is Python callable.
+                    pass
 
         no_failed_deps_result = [(
             "Unknown",
